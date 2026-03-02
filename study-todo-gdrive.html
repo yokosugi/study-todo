@@ -156,7 +156,7 @@
   .time-hm { display:flex; align-items:center; gap:2px; }
   .time-hm-input { width:32px; border:1.5px solid var(--line); border-radius:4px; padding:3px 4px; font-family:'Space Mono',monospace; font-size:12px; font-weight:700; color:var(--ink); text-align:center; outline:none; background:white; }
   .time-hm-input:focus { border-color:var(--ink); }
-  .time-hm-sep { font-family:'Space Mono',monospace; font-size:12px; font-weight:700; color:var(--ink-light); }
+  .time-hm-sep { font-family:'Noto Sans JP',sans-serif; font-size:11px; font-weight:500; color:var(--ink-light); padding:0 2px; }
   .time-hm-label { font-size:9px; color:var(--ink-light); }
   .time-total-display { font-family:'Space Mono',monospace; font-size:11px; color:var(--ink-light); margin-left:2px; }
 
@@ -292,7 +292,10 @@
 
       <!-- Study time manual input -->
       <div class="timer-section">
-        <div class="section-box-label">📚 勉強時間記録（今日）</div>
+        <div class="section-box-label" style="display:flex;justify-content:space-between;align-items:center">
+        <span>📚 勉強時間記録（今日）</span>
+        <span style="font-size:9px;color:var(--accent-blue);cursor:pointer;font-weight:700;letter-spacing:0" onclick="showPage('stats')">📊 週次・月次グラフを見る →</span>
+      </div>
         <div class="timer-grid" id="timerGrid"></div>
       </div>
 
@@ -757,22 +760,23 @@ function renderTimers(){
   const grid=document.getElementById('timerGrid');
   grid.innerHTML='';
   SUBJECTS.forEach(subj=>{
-    const mins=Math.round((st.timers[subj.key]||0)/60); // stored as seconds, display as minutes
-    const h=Math.floor(mins/60);
-    const m=mins%60;
+    // timers stored as minutes directly
+    const totalMins = st.timers[subj.key]||0;
+    const h=Math.floor(totalMins/60);
+    const m=totalMins%60;
     const div=document.createElement('div');div.className='subject-timer';
     const label=document.createElement('div');label.className='subject-timer-label';
     label.innerHTML=`<span>${subj.emoji}</span><span style="color:${subj.color};font-weight:700">${subj.label}</span>`;
     const row=document.createElement('div');row.className='time-input-row';
     const hm=document.createElement('div');hm.className='time-hm';
     const hInp=document.createElement('input');hInp.className='time-hm-input';hInp.type='number';hInp.min='0';hInp.max='23';hInp.value=h;hInp.id=`th-${subj.key}`;
-    const sep=document.createElement('span');sep.className='time-hm-sep';sep.textContent=':';
+    const sep=document.createElement('span');sep.className='time-hm-sep';sep.textContent='時間';
     const mInp=document.createElement('input');mInp.className='time-hm-input';mInp.type='number';mInp.min='0';mInp.max='59';mInp.value=String(m).padStart(2,'0');mInp.id=`tm-${subj.key}`;
-    const lbl=document.createElement('span');lbl.className='time-hm-label';lbl.textContent='h  m';
+    const lbl=document.createElement('span');lbl.className='time-hm-label';lbl.textContent='分';
     const onchange=()=>{
       const hv=parseInt(document.getElementById(`th-${subj.key}`).value)||0;
       const mv=parseInt(document.getElementById(`tm-${subj.key}`).value)||0;
-      st.timers[subj.key]=(hv*60+mv)*60;
+      st.timers[subj.key]=hv*60+mv; // store as minutes
       saveLocal();
     };
     hInp.onchange=onchange;mInp.onchange=onchange;
@@ -790,7 +794,7 @@ function getTotalMinutes(key, dateFilter){
   let total=0;
   Object.entries(appState).forEach(([dk,st])=>{
     if(dateFilter&&!dateFilter(dk)) return;
-    total+=Math.round((st.timers&&st.timers[key]||0)/60);
+    total+=(st.timers&&st.timers[key]||0); // stored as minutes
   });
   return total;
 }
