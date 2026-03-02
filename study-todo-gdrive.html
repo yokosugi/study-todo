@@ -33,28 +33,19 @@
     gap: 0;
   }
 
-  /* ===== SETUP ===== */
-  .setup-screen { width:100%; max-width:520px; background:var(--paper); border-radius:12px; box-shadow:4px 4px 20px rgba(0,0,0,0.4); padding:28px 24px; display:none; }
-  .setup-screen.active { display:block; }
-  .setup-title { font-family:'Space Mono',monospace; font-size:13px; font-weight:700; letter-spacing:2px; color:var(--ink); margin-bottom:6px; }
-  .setup-subtitle { font-size:12px; color:var(--ink-light); margin-bottom:20px; line-height:1.6; }
-  .step-block { border:1px solid var(--line); border-radius:8px; margin-bottom:12px; overflow:hidden; }
-  .step-header { background:var(--ink); color:var(--paper); padding:8px 14px; font-family:'Space Mono',monospace; font-size:10px; font-weight:700; letter-spacing:1px; display:flex; align-items:center; gap:8px; }
-  .step-num { width:20px; height:20px; border-radius:50%; background:var(--paper); color:var(--ink); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; }
-  .step-body { padding:12px 14px; font-size:12px; line-height:1.8; color:var(--ink); background:white; }
-  .step-body a { color:var(--accent-blue); font-weight:700; }
-  .step-body code { background:#f0ece0; padding:1px 5px; border-radius:3px; font-family:'Space Mono',monospace; font-size:11px; color:var(--accent-red); }
-  .step-body ul { padding-left:16px; margin-top:4px; }
-  .step-body li { margin-bottom:2px; }
-  .input-row { display:flex; flex-direction:column; gap:8px; margin-top:16px; }
-  .input-label { font-family:'Space Mono',monospace; font-size:10px; font-weight:700; letter-spacing:1px; color:var(--ink-light); }
-  .setup-input { border:2px solid var(--line); border-radius:6px; padding:10px 12px; font-family:'Space Mono',monospace; font-size:11px; color:var(--ink); background:white; width:100%; outline:none; transition:border-color 0.15s; }
-  .setup-input:focus { border-color:var(--ink); }
-  .btn-primary { background:var(--ink); color:var(--paper); border:none; border-radius:6px; padding:12px 20px; font-family:'Space Mono',monospace; font-size:11px; font-weight:700; letter-spacing:1px; cursor:pointer; width:100%; margin-top:16px; transition:opacity 0.15s; }
-  .btn-primary:hover { opacity:0.8; }
-  .btn-secondary { background:transparent; color:var(--ink-light); border:1px solid var(--line); border-radius:6px; padding:8px 16px; font-family:'Space Mono',monospace; font-size:10px; cursor:pointer; transition:all 0.15s; }
-  .btn-secondary:hover { border-color:var(--ink); color:var(--ink); }
-  .notice-box { background:#fef9e7; border:1px solid #f0c040; border-radius:6px; padding:10px 12px; font-size:11px; line-height:1.6; color:#7d6608; margin-top:12px; }
+  /* ===== LOGIN OVERLAY ===== */
+  .login-overlay { position:fixed; inset:0; background:#8b7355; background-image:repeating-linear-gradient(45deg,transparent,transparent 35px,rgba(0,0,0,.05) 35px,rgba(0,0,0,.05) 70px); display:none; align-items:center; justify-content:center; z-index:100; padding:20px; }
+  .login-overlay.active { display:flex; }
+  .login-card { width:100%; max-width:340px; background:var(--paper); border-radius:4px 12px 12px 4px; box-shadow:-8px 0 0 #6b5a4e,-16px 0 0 #5a4a3e,4px 4px 20px rgba(0,0,0,0.4); overflow:hidden; position:relative; }
+  .login-rings { height:36px; background:var(--ring); display:flex; align-items:center; justify-content:space-around; padding:0 8px; }
+  .login-body { padding:32px 28px 28px; text-align:center; }
+  .login-title { font-family:'Caveat',cursive; font-size:28px; font-weight:600; color:var(--ink); margin-bottom:10px; }
+  .login-sub { font-size:12px; color:var(--ink-light); line-height:1.7; margin-bottom:28px; }
+  .login-google-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:12px 20px; background:white; border:2px solid var(--ink); border-radius:8px; font-family:'Noto Sans JP',sans-serif; font-size:14px; font-weight:700; color:var(--ink); cursor:pointer; transition:all 0.15s; margin-bottom:12px; }
+  .login-google-btn:hover { background:var(--ink); color:var(--paper); }
+  .login-google-btn:hover svg path { fill:white; }
+  .login-skip-btn { background:transparent; border:none; color:var(--ink-light); font-size:11px; cursor:pointer; text-decoration:underline; font-family:'Noto Sans JP',sans-serif; }
+  .login-skip-btn:hover { color:var(--ink); }
 
   /* ===== NOTEBOOK ===== */
   .notebook { width:100%; max-width:500px; background:var(--paper); border-radius:4px 12px 12px 4px; box-shadow:-8px 0 0 #6b5a4e,-16px 0 0 #5a4a3e,4px 4px 20px rgba(0,0,0,0.4),0 0 0 1px rgba(0,0,0,0.1); position:relative; overflow:hidden; display:none; }
@@ -154,7 +145,7 @@
   .subject-timer-label { font-size:10px; font-weight:500; color:var(--ink-light); display:flex; align-items:center; gap:4px; }
   .time-input-row { display:flex; align-items:center; gap:4px; }
   .time-hm { display:flex; align-items:center; gap:2px; }
-  .time-hm-input { width:32px; border:1.5px solid var(--line); border-radius:4px; padding:3px 4px; font-family:'Space Mono',monospace; font-size:12px; font-weight:700; color:var(--ink); text-align:center; outline:none; background:white; }
+  .time-hm-input { width:44px; border:1.5px solid var(--line); border-radius:4px; padding:3px 6px; font-family:'Space Mono',monospace; font-size:13px; font-weight:700; color:var(--ink); text-align:center; outline:none; background:white; }
   .time-hm-input:focus { border-color:var(--ink); }
   .time-hm-sep { font-family:'Noto Sans JP',sans-serif; font-size:11px; font-weight:500; color:var(--ink-light); padding:0 2px; }
   .time-hm-label { font-size:9px; color:var(--ink-light); }
@@ -197,22 +188,20 @@
 <body>
 <div class="toast" id="toast"></div>
 
-<!-- SETUP -->
-<div class="setup-screen active" id="setupScreen">
-  <div class="setup-title">⚙️ GOOGLE DRIVE 連携設定</div>
-  <div class="setup-subtitle">初回のみ設定が必要です。以下の手順でAPIキーを取得してください。</div>
-  <div class="step-block"><div class="step-header"><div class="step-num">1</div>Google Cloud Consoleでプロジェクトを作成</div><div class="step-body"><a href="https://console.cloud.google.com/" target="_blank">https://console.cloud.google.com/</a> を開く<br>→ 上部の「プロジェクトを選択」→「新しいプロジェクト」<br>→ プロジェクト名は何でもOK（例: <code>study-todo</code>）→「作成」</div></div>
-  <div class="step-block"><div class="step-header"><div class="step-num">2</div>Google Drive API を有効化</div><div class="step-body">「APIとサービス」→「ライブラリ」<br>→ <code>Google Drive API</code> を検索 →「有効にする」</div></div>
-  <div class="step-block"><div class="step-header"><div class="step-num">3</div>OAuth同意画面を設定</div><div class="step-body">「Google Auth Platform」→「設定」→「開始」<br>→ アプリ名・メールを入力、対象：<code>外部</code> で完了</div></div>
-  <div class="step-block"><div class="step-header"><div class="step-num">4</div>OAuthクライアントIDを作成</div><div class="step-body">「クライアント」→「クライアントを作成」→ 種類：<code>ウェブアプリケーション</code><br>→「承認済みのJavaScript生成元」に追加：<ul><li><code id="originText">（このページのURLを貼り付け）</code></li></ul>→「作成」→ <strong>クライアントID</strong> をコピー</div></div>
-  <div class="step-block"><div class="step-header"><div class="step-num">5</div>テストユーザーを追加</div><div class="step-body">「対象」→「テストユーザー」→「ユーザーを追加」<br>→ 自分のGmailアドレスを追加 →「保存」</div></div>
-  <div class="input-row">
-    <div class="input-label">クライアントID を貼り付け</div>
-    <input class="setup-input" id="clientIdInput" type="text" placeholder="xxxxxxxxxx.apps.googleusercontent.com">
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay active" id="loginOverlay">
+  <div class="login-card">
+    <div class="login-rings" id="loginRings"></div>
+    <div class="login-body">
+      <div class="login-title">📓 学習ToDoリスト</div>
+      <div class="login-sub">Googleアカウントでログインして<br>どのデバイスからでも同期できます</div>
+      <button class="login-google-btn" onclick="startLogin()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Googleでログイン
+      </button>
+      <button class="login-skip-btn" onclick="skipLogin()">ログインせずに使う（このデバイスのみ）</button>
+    </div>
   </div>
-  <div class="notice-box">💡 クライアントIDはこのデバイスのブラウザにのみ保存されます。</div>
-  <button class="btn-primary" onclick="saveClientId()">✅ 設定を保存してアプリを開く</button>
-  <button class="btn-secondary" style="margin-top:10px;width:100%" onclick="skipSetup()">スキップ（ローカル保存で使用する）</button>
 </div>
 
 <!-- NOTEBOOK -->
@@ -245,7 +234,7 @@
       <div class="drive-actions">
         <button class="drive-btn save-btn" onclick="saveToDrive()">💾 保存</button>
         <button class="drive-btn" onclick="loadFromDrive()">📥 読込</button>
-        <button class="drive-btn" onclick="showSetup()">⚙️</button>
+
       </div>
     </div>
 
@@ -605,25 +594,27 @@ function updateDriveStatus(state,text){
 }
 
 // ============================================
-// SETUP
+// LOGIN
 // ============================================
-function saveClientId(){
-  const val=document.getElementById('clientIdInput').value.trim();
-  if(!val||!val.includes('.apps.googleusercontent.com')){showToast('❌ 正しいクライアントIDを入力してください');return;}
-  DRIVE_CLIENT_ID=val;localStorage.setItem('driveClientId',val);
-  document.getElementById('setupScreen').classList.remove('active');
+// クライアントIDをここに埋め込む
+const EMBEDDED_CLIENT_ID = '551137853722-ms752pnh9hh2ofn7jeno73tdkb0bvo4p.apps.googleusercontent.com';
+
+function startLogin(){
+  localStorage.setItem('driveAutoLogin','1');
+  document.getElementById('loginOverlay').classList.remove('active');
   document.getElementById('notebook').classList.add('active');
-  initGapi();render();showToast('✅ 設定を保存しました');
+  DRIVE_CLIENT_ID = EMBEDDED_CLIENT_ID;
+  initGapi();
 }
-function skipSetup(){
-  document.getElementById('setupScreen').classList.remove('active');
+function skipLogin(){
+  document.getElementById('loginOverlay').classList.remove('active');
   document.getElementById('notebook').classList.add('active');
   render();
 }
 function showSetup(){
-  document.getElementById('setupScreen').classList.add('active');
+  // Show login overlay again from settings button
+  document.getElementById('loginOverlay').classList.add('active');
   document.getElementById('notebook').classList.remove('active');
-  if(DRIVE_CLIENT_ID)document.getElementById('clientIdInput').value=DRIVE_CLIENT_ID;
 }
 
 // ============================================
@@ -769,9 +760,9 @@ function renderTimers(){
     label.innerHTML=`<span>${subj.emoji}</span><span style="color:${subj.color};font-weight:700">${subj.label}</span>`;
     const row=document.createElement('div');row.className='time-input-row';
     const hm=document.createElement('div');hm.className='time-hm';
-    const hInp=document.createElement('input');hInp.className='time-hm-input';hInp.type='number';hInp.min='0';hInp.max='23';hInp.value=h;hInp.id=`th-${subj.key}`;
+    const hInp=document.createElement('input');hInp.className='time-hm-input';hInp.type='number';hInp.min='0';hInp.max='23';hInp.placeholder='0';hInp.value=h;hInp.id=`th-${subj.key}`;
     const sep=document.createElement('span');sep.className='time-hm-sep';sep.textContent='時間';
-    const mInp=document.createElement('input');mInp.className='time-hm-input';mInp.type='number';mInp.min='0';mInp.max='59';mInp.value=String(m).padStart(2,'0');mInp.id=`tm-${subj.key}`;
+    const mInp=document.createElement('input');mInp.className='time-hm-input';mInp.type='number';mInp.min='0';mInp.max='59';mInp.placeholder='00';mInp.value=String(m).padStart(2,'0');mInp.id=`tm-${subj.key}`;
     const lbl=document.createElement('span');lbl.className='time-hm-label';lbl.textContent='分';
     const onchange=()=>{
       const hv=parseInt(document.getElementById(`th-${subj.key}`).value)||0;
@@ -929,18 +920,24 @@ function showToast(msg){
 // INIT
 // ============================================
 (function(){
+  // Build rings for notebook
   const rings=document.getElementById('rings');
   for(let i=0;i<18;i++){const r=document.createElement('div');r.className='ring';rings.appendChild(r);}
-  document.getElementById('originText').textContent=window.location.origin||'file://';
-  const saved=localStorage.getItem('driveClientId');
-  if(saved){
-    DRIVE_CLIENT_ID=saved;
-    document.getElementById('clientIdInput').value=saved;
-    document.getElementById('setupScreen').classList.remove('active');
+  // Build rings for login card
+  const lrings=document.getElementById('loginRings');
+  if(lrings){for(let i=0;i<14;i++){const r=document.createElement('div');r.className='ring';lrings.appendChild(r);}}
+
+  loadLocal();render();bindInputs();
+
+  // Auto-start with embedded client ID - skip login overlay if already used before
+  const alreadyLoggedIn = localStorage.getItem('driveAutoLogin');
+  if(alreadyLoggedIn){
+    document.getElementById('loginOverlay').classList.remove('active');
     document.getElementById('notebook').classList.add('active');
+    DRIVE_CLIENT_ID = EMBEDDED_CLIENT_ID;
     initGapi();
   }
-  loadLocal();render();bindInputs();
+  // else: login overlay stays visible (default active)
 })();
 </script>
 </body>
