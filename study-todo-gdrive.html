@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>学習ToDoリスト</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Caveat:wght@400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #faf8f2;
+    --paper-dark: #f0ece0;
+    --ink: #1a1614;
+    --ink-light: #4a3f38;
+    --ring: #2c2c2c;
+    --accent-red: #c0392b;
+    --accent-blue: #2980b9;
+    --accent-green: #27ae60;
+    --accent-orange: #e67e22;
+    --accent-purple: #8e44ad;
+    --line: #d4cec0;
+    --shadow: rgba(0,0,0,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #8b7355;
+    background-image: repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(0,0,0,.05) 35px, rgba(0,0,0,.05) 70px);
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  /* ===== SETUP SCREEN ===== */
+  .setup-screen {
+    width: 100%;
+    max-width: 520px;
+    background: var(--paper);
+    border-radius: 12px;
+    box-shadow: 4px 4px 20px rgba(0,0,0,0.4);
+    padding: 28px 24px;
+    display: none;
+  }
+  .setup-screen.active { display: block; }
+
+  .setup-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .setup-subtitle {
+    font-size: 12px;
+    color: var(--ink-light);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .step-block {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .step-header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 8px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .step-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--paper);
+    color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-body {
+    padding: 12px 14px;
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--ink);
+    background: white;
+  }
+  .step-body a {
+    color: var(--accent-blue);
+    font-weight: 700;
+  }
+  .step-body code {
+    background: #f0ece0;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-red);
+  }
+  .step-body ul {
+    padding-left: 16px;
+    margin-top: 4px;
+  }
+  .step-body li { margin-bottom: 2px; }
+
+  .input-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .input-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--ink-light);
+  }
+  .setup-input {
+    border: 2px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--ink);
+    background: white;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .setup-input:focus { border-color: var(--ink); }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 6px;
+    padding: 12px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 16px;
+    transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.8; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink-light);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { border-color: var(--ink); color: var(--ink); }
+
+  .notice-box {
+    background: #fef9e7;
+    border: 1px solid #f0c040;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 11px;
+    line-height: 1.6;
+    color: #7d6608;
+    margin-top: 12px;
+  }
+
+  /* ===== NOTEBOOK ===== */
+  .notebook {
+    width: 100%;
+    max-width: 500px;
+    background: var(--paper);
+    border-radius: 4px 12px 12px 4px;
+    box-shadow: -8px 0 0 #6b5a4e, -16px 0 0 #5a4a3e, 4px 4px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,0,0,0.1);
+    position: relative;
+    overflow: hidden;
+    display: none;
+  }
+  .notebook.active { display: block; }
+
+  .rings {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 36px;
+    background: var(--ring);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 8px;
+    z-index: 10;
+  }
+  .ring {
+    width: 20px;
+    height: 28px;
+    border: 3px solid #666;
+    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+    background: #888;
+    box-shadow: inset 0 2px 4px rgba(255,255,255,0.3), 0 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .content { padding: 48px 16px 16px; }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .date-section { display: flex; gap: 16px; align-items: baseline; }
+  .date-label { font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; letter-spacing: 2px; color: var(--ink-light); }
+  .date-value { font-family: 'Caveat', cursive; font-size: 22px; font-weight: 600; color: var(--ink); }
+  .day-nav { display: flex; align-items: center; gap: 8px; }
+  .nav-btn {
+    width: 28px; height: 28px;
+    border: 2px solid var(--ink);
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    color: var(--ink);
+  }
+  .nav-btn:hover { background: var(--ink); color: var(--paper); }
+  .day-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px; font-weight: 700;
+    padding: 3px 10px;
+    border: 2px solid var(--ink);
+    border-radius: 2px;
+    color: var(--ink);
+    min-width: 50px;
+    text-align: center;
+  }
+
+  /* Drive status bar */
+  .drive-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 11px;
+  }
+  .drive-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--ink-light);
+  }
+  .drive-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--line);
+    flex-shrink: 0;
+  }
+  .drive-dot.synced { background: var(--accent-green); }
+  .drive-dot.syncing { background: var(--accent-orange); animation: pulse 1s infinite; }
+  .drive-dot.error { background: var(--accent-red); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .drive-actions { display: flex; gap: 6px; }
+  .drive-btn {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: white;
+    cursor: pointer;
+    color: var(--ink-light);
+    transition: all 0.15s;
+  }
+  .drive-btn:hover { border-color: var(--ink); color: var(--ink); }
+  .drive-btn.save-btn {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+  }
+  .drive-btn.save-btn:hover { background: var(--accent-blue); color: white; }
+
+  .weather-row { display: flex; justify-content: flex-end; gap: 6px; margin-bottom: 12px; }
+  .weather-icon {
+    width: 28px; height: 28px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--paper);
+  }
+  .weather-icon.selected { border-color: var(--accent-blue); background: #e8f4f8; }
+
+  .section-box { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; background: white; }
+  .section-box-label { font-family: 'Space Mono', monospace; font-size: 9px; font-weight: 700; letter-spacing: 2px; color: var(--ink-light); margin-bottom: 6px; }
+  .dotted-lines { display: flex; flex-direction: column; gap: 6px; }
+  .dotted-line {
+    border: none;
+    border-bottom: 1px dotted var(--line);
+    background: transparent;
+    width: 100%;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    padding: 2px 0;
+    outline: none;
+  }
+  .dotted-line::placeholder { color: var(--line); }
+
+  .progress-bar-container { height: 4px; background: var(--line); border-radius: 2px; margin: 8px 0 4px; overflow: hidden; }
+  .progress-bar { height: 100%; background: var(--ink); border-radius: 2px; transition: width 0.4s ease; }
+  .progress-label { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--ink-light); text-align: right; margin-bottom: 12px; }
+
+  .main-area { display: grid; grid-template-columns: 1fr 110px; gap: 10px; margin-bottom: 14px; }
+  .todo-list { display: flex; flex-direction: column; gap: 2px; }
+  .todo-section-header { font-family: 'Space Mono', monospace; font-size: 8px; font-weight: 700; letter-spacing: 2px; color: var(--ink-light); padding: 8px 0 4px; border-top: 1px solid var(--line); margin-top: 4px; text-transform: uppercase; }
+  .todo-section-header:first-child { border-top: none; padding-top: 2px; }
+  .todo-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 4px; border-bottom: 1px dotted var(--line); transition: background 0.1s; border-radius: 4px; }
+  .todo-item:hover { background: rgba(0,0,0,0.02); }
+  .checkbox { width: 16px; height: 16px; border: 2px solid var(--ink-light); border-radius: 2px; flex-shrink: 0; margin-top: 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; background: white; }
+  .checkbox.checked { background: var(--ink); border-color: var(--ink); }
+  .checkbox.checked::after { content: '✓'; color: white; font-size: 10px; font-weight: 700; }
+  .todo-text { font-size: 12px; line-height: 1.5; color: var(--ink); flex: 1; cursor: pointer; transition: opacity 0.15s; }
+  .todo-text.done { text-decoration: line-through; opacity: 0.4; }
+  .section-divider { display: flex; align-items: center; gap: 8px; margin: 6px 0 4px; }
+  .section-divider-line { flex: 1; height: 1px; background: var(--line); }
+  .section-divider-text { font-family: 'Space Mono', monospace; font-size: 8px; color: var(--ink-light); letter-spacing: 1px; }
+  .optional-note { font-size: 9px; color: var(--accent-orange); font-style: italic; }
+  .tag { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 2px; font-family: 'Space Mono', monospace; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .tag-math { background: #fdebd0; color: #e67e22; }
+  .tag-sci { background: #e8f8f5; color: #27ae60; }
+  .tag-jp { background: #fdf2f8; color: #8e44ad; }
+  .tag-soc { background: #eaf2fb; color: #2980b9; }
+
+  .timetable { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: white; align-self: flex-start; }
+  .timetable-header { background: var(--ink); color: var(--paper); font-family: 'Space Mono', monospace; font-size: 8px; font-weight: 700; letter-spacing: 2px; text-align: center; padding: 5px 2px; }
+  .time-row { display: grid; grid-template-columns: 22px 1fr; border-bottom: 1px solid var(--line); min-height: 22px; }
+  .time-row:last-child { border-bottom: none; }
+  .time-num { font-family: 'Space Mono', monospace; font-size: 8px; color: var(--ink-light); padding: 3px 2px 3px 4px; border-right: 1px solid var(--line); display: flex; align-items: center; justify-content: flex-end; background: #f8f6f0; }
+  .time-input { border: none; background: transparent; font-size: 9px; font-family: 'Noto Sans JP', sans-serif; color: var(--ink); padding: 2px 4px; width: 100%; outline: none; }
+
+  .timer-section { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; background: white; }
+  .timer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .subject-timer { display: flex; flex-direction: column; gap: 4px; }
+  .subject-timer-label { font-size: 10px; font-weight: 500; color: var(--ink-light); display: flex; align-items: center; gap: 4px; }
+  .timer-controls { display: flex; align-items: center; gap: 4px; }
+  .timer-display { font-family: 'Space Mono', monospace; font-size: 13px; font-weight: 700; color: var(--ink); min-width: 44px; text-align: center; }
+  .timer-btn { width: 22px; height: 22px; border: 1.5px solid var(--line); border-radius: 50%; background: white; cursor: pointer; font-size: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; color: var(--ink); }
+  .timer-btn:hover { border-color: var(--ink); background: var(--paper-dark); }
+  .timer-btn.running { border-color: var(--accent-green); color: var(--accent-green); }
+
+  .summary-section { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; background: white; }
+
+  @media (max-width: 400px) {
+    body { padding: 0; }
+    .notebook { border-radius: 0; max-width: 100%; }
+    .setup-screen { border-radius: 0; max-width: 100%; }
+    .timer-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 1000;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== SETUP SCREEN ===== -->
+<div class="setup-screen active" id="setupScreen">
+  <div class="setup-title">⚙️ GOOGLE DRIVE 連携設定</div>
+  <div class="setup-subtitle">初回のみ設定が必要です。以下の手順でAPIキーを取得してください。</div>
+
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-num">1</div>
+      Google Cloud Consoleでプロジェクトを作成
+    </div>
+    <div class="step-body">
+      <a href="https://console.cloud.google.com/" target="_blank">https://console.cloud.google.com/</a> を開く<br>
+      → 上部の「プロジェクトを選択」→「新しいプロジェクト」<br>
+      → プロジェクト名は何でもOK（例: <code>study-todo</code>）→「作成」
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-num">2</div>
+      Google Drive API を有効化
+    </div>
+    <div class="step-body">
+      左メニュー「APIとサービス」→「ライブラリ」<br>
+      → 検索欄に <code>Google Drive API</code> と入力<br>
+      → 「Google Drive API」を選択 → 「有効にする」
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-num">3</div>
+      OAuth同意画面を設定
+    </div>
+    <div class="step-body">
+      「APIとサービス」→「OAuth同意画面」<br>
+      → ユーザーの種類：<code>外部</code> を選択 → 「作成」<br>
+      → アプリ名（例: <code>学習Todo</code>）、メールアドレスを入力<br>
+      → 「保存して次へ」を3回クリックして完了
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-num">4</div>
+      OAuthクライアントIDを作成
+    </div>
+    <div class="step-body">
+      「APIとサービス」→「認証情報」→「認証情報を作成」→「OAuthクライアントID」<br>
+      → アプリの種類：<code>ウェブアプリケーション</code><br>
+      → 「承認済みのJavaScript生成元」に以下を追加：
+      <ul>
+        <li><code id="originText">（このページのURLを貼り付けてください）</code></li>
+      </ul>
+      → 「作成」→ 表示された<strong>「クライアントID」</strong>をコピー
+    </div>
+  </div>
+
+  <div class="step-block">
+    <div class="step-header">
+      <div class="step-num">5</div>
+      テストユーザーを追加（外部アプリの場合）
+    </div>
+    <div class="step-body">
+      「OAuth同意画面」→「テストユーザー」→「ユーザーを追加」<br>
+      → ご自身のGmailアドレスを追加 → 「保存」
+    </div>
+  </div>
+
+  <div class="input-row">
+    <div class="input-label">クライアントID を貼り付け</div>
+    <input class="setup-input" id="clientIdInput" type="text" placeholder="xxxxxxxxxx.apps.googleusercontent.com">
+  </div>
+
+  <div class="notice-box">
+    💡 クライアントIDはこのデバイスのブラウザにのみ保存されます。第三者には送信されません。
+  </div>
+
+  <button class="btn-primary" onclick="saveClientId()">✅ 設定を保存してアプリを開く</button>
+  <button class="btn-secondary" style="margin-top:10px;width:100%" onclick="skipSetup()">スキップ（ローカル保存で使用する）</button>
+</div>
+
+<!-- ===== NOTEBOOK ===== -->
+<div class="notebook" id="notebook">
+  <div class="rings" id="rings"></div>
+  <div class="content">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="date-section">
+        <span class="date-label">DATE</span>
+        <span class="date-value" id="dateDisplay"></span>
+      </div>
+      <div class="day-nav">
+        <button class="nav-btn" onclick="changeDay(-1)">◀</button>
+        <div class="day-badge" id="dayBadge"></div>
+        <button class="nav-btn" onclick="changeDay(1)">▶</button>
+      </div>
+    </div>
+
+    <!-- Drive status bar -->
+    <div class="drive-bar" id="driveBar">
+      <div class="drive-status">
+        <div class="drive-dot" id="driveDot"></div>
+        <span id="driveStatusText">Google Drive: 未接続</span>
+      </div>
+      <div class="drive-actions">
+        <button class="drive-btn save-btn" onclick="saveToDrive()" id="saveBtn">💾 保存</button>
+        <button class="drive-btn" onclick="loadFromDrive()" id="loadBtn">📥 読込</button>
+        <button class="drive-btn" onclick="showSetup()">⚙️</button>
+      </div>
+    </div>
+
+    <!-- Weather -->
+    <div class="weather-row">
+      <div class="weather-icon" onclick="selectWeather(this,'☀️')" title="晴れ">☀️</div>
+      <div class="weather-icon" onclick="selectWeather(this,'⛅')" title="曇り時々晴れ">⛅</div>
+      <div class="weather-icon" onclick="selectWeather(this,'☁️')" title="曇り">☁️</div>
+      <div class="weather-icon" onclick="selectWeather(this,'🌧️')" title="雨">🌧️</div>
+      <div class="weather-icon" onclick="selectWeather(this,'⛈️')" title="嵐">⛈️</div>
+      <div class="weather-icon" onclick="selectWeather(this,'❄️')" title="雪">❄️</div>
+    </div>
+
+    <!-- Goal -->
+    <div class="section-box">
+      <div class="section-box-label">METE / 目標</div>
+      <div class="dotted-lines">
+        <input class="dotted-line" placeholder="今日の目標を書こう..." id="goal1">
+        <input class="dotted-line" id="goal2">
+        <input class="dotted-line" id="goal3">
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-bar-container"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+    <div class="progress-label" id="progressLabel">0 / 0 完了</div>
+
+    <!-- Main area -->
+    <div class="main-area">
+      <div class="todo-list" id="todoList"></div>
+      <div class="timetable">
+        <div class="timetable-header">TIMETABLE</div>
+        <div id="timetableRows"></div>
+      </div>
+    </div>
+
+    <!-- Study timer -->
+    <div class="timer-section">
+      <div class="section-box-label">📚 勉強時間記録</div>
+      <div class="timer-grid" id="timerGrid"></div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-section">
+      <div class="section-box-label">SUMMARY / まとめ</div>
+      <div class="dotted-lines">
+        <input class="dotted-line" placeholder="今日の振り返り..." id="summary1">
+        <input class="dotted-line" id="summary2">
+        <input class="dotted-line" id="summary3">
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Google API -->
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
+<script>
+// ============================================
+// ROUTINES DATA
+// ============================================
+const ROUTINES = {
+  月: [
+    { id:'mon_1', text:'基礎力トレーニング（算数）', tag:'math' },
+    { id:'mon_2', text:'基礎力トレーニング（理科）', tag:'sci' },
+    { id:'mon_s1', type:'section', text:'文系科目の勉強' },
+    { id:'mon_s1a', type:'section2', text:'🟣 国語' },
+    { id:'mon_3', text:'①「漢字道場」の該当回の復習', tag:'jp', indent:true },
+    { id:'mon_4', text:'②テキストより語彙のテキスト', tag:'jp', indent:true },
+    { id:'mon_s1b', type:'section2', text:'🔵 社会' },
+    { id:'mon_5', text:'火曜日テキスト 最後までやる', tag:'soc', indent:true },
+    { id:'mon_6', text:'復習テストの直し', tag:'soc', indent:true, note:'火曜日の塾の後に終わっていればOK' },
+  ],
+  火: [
+    { id:'tue_1', text:'基礎力トレーニング（算数）', tag:'math' },
+    { id:'tue_2', text:'基礎力トレーニング（理科）', tag:'sci' },
+    { id:'tue_s1', type:'section', text:'塾（17〜21時）帰ってきてから' },
+    { id:'tue_3', text:'社会 復習テストの直し', tag:'soc' },
+    { id:'tue_4', text:'国語 漢字テストの直し', tag:'jp' },
+  ],
+  水: [
+    { id:'wed_1', text:'基礎力トレーニング（算数）', tag:'math' },
+    { id:'wed_2', text:'基礎力トレーニング（理科）', tag:'sci' },
+    { id:'wed_3', text:'「漢字道場」の該当回の復習', tag:'jp' },
+    { id:'wed_s1', type:'section', text:'理系科目の勉強' },
+    { id:'wed_s1a', type:'section2', text:'🟠 算数' },
+    { id:'wed_4', text:'木曜日テキスト 指定の問題をやる', tag:'math', indent:true },
+    { id:'wed_s1b', type:'section2', text:'🟢 理科' },
+    { id:'wed_5', text:'木曜日テキスト ラーニングチェック', tag:'sci', indent:true },
+    { id:'wed_6', text:'木曜日テキスト 指定の問題をやる', tag:'sci', indent:true },
+  ],
+  木: [
+    { id:'thu_1', text:'基礎力トレーニング（算数）', tag:'math' },
+    { id:'thu_2', text:'基礎力トレーニング（理科）', tag:'sci' },
+    { id:'thu_s1', type:'section', text:'塾（17〜21時）帰ってきてから' },
+    { id:'thu_3', text:'理科 復習テストの直し', tag:'sci' },
+    { id:'thu_4', text:'算数 復習テストの直し', tag:'math' },
+  ],
+  金: [
+    { id:'fri_1', text:'基礎力トレーニング（算数）', tag:'math' },
+    { id:'fri_2', text:'基礎力トレーニング（理科）', tag:'sci' },
+    { id:'fri_3', text:'「漢字道場」の該当回の復習', tag:'jp' },
+    { id:'fri_s1', type:'section', text:'土特のテキスト勉強' },
+    { id:'fri_4', text:'算数テキスト', tag:'math' },
+    { id:'fri_5', text:'理科テキスト グノベーシック', tag:'sci' },
+    { id:'fri_6', text:'社会テキスト', tag:'soc' },
+    { id:'fri_7', text:'平面図形マスター', tag:'math' },
+    { id:'fri_8', text:'「漢字道場」の該当回の復習', tag:'jp' },
+  ],
+  土: [
+    { id:'sat_s1', type:'section', text:'塾（14〜19時）帰ってから' },
+    { id:'sat_1', text:'平面図形マスターの直し', tag:'math' },
+    { id:'sat_2', text:'社会復習テストの直し', tag:'soc' },
+    { id:'sat_3', text:'理科復習テストの直し', tag:'sci' },
+    { id:'sat_4', text:'国語漢字テスト', tag:'jp' },
+  ],
+  日: [
+    { id:'sun_s1', type:'section', text:'土特の復習' },
+    { id:'sun_s1a', type:'section2', text:'🟠 算数' },
+    { id:'sun_1', text:'平面図形マスターの直し', tag:'math', indent:true },
+    { id:'sun_s1b', type:'section2', text:'🟣 国語' },
+    { id:'sun_2', text:'テキスト読み直し', tag:'jp', indent:true },
+    { id:'sun_s1c', type:'section2', text:'🔵 社会' },
+    { id:'sun_3', text:'復習テストの直し', tag:'soc', indent:true },
+    { id:'sun_4', text:'テキスト', tag:'soc', indent:true },
+    { id:'sun_s1d', type:'section2', text:'🟢 理科' },
+    { id:'sun_5', text:'復習テストの直し', tag:'sci', indent:true },
+    { id:'sun_6', text:'テキスト グノベーシック', tag:'sci', indent:true },
+  ],
+};
+
+const DAY_NAMES = ['日','月','火','水','木','金','土'];
+const TAG_LABELS = { math:'算', sci:'理', jp:'国', soc:'社' };
+const TAG_CLASSES = { math:'tag-math', sci:'tag-sci', jp:'tag-jp', soc:'tag-soc' };
+const SUBJECTS = [
+  { key:'math', label:'算数', emoji:'🔢', color:'#e67e22' },
+  { key:'sci',  label:'理科', emoji:'🔬', color:'#27ae60' },
+  { key:'jp',   label:'国語', emoji:'📖', color:'#8e44ad' },
+  { key:'soc',  label:'社会', emoji:'🌍', color:'#2980b9' },
+];
+
+// ============================================
+// STATE
+// ============================================
+let currentDate = new Date(2026, 2, 2);
+let appState = {};
+let driveFileId = null;
+let gapiReady = false;
+let tokenClient = null;
+let accessToken = null;
+let DRIVE_CLIENT_ID = '';
+const DRIVE_FILE_NAME = 'study-todo-data.json';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+function dateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function getDayState(d) {
+  const k = dateKey(d);
+  if (!appState[k]) appState[k] = { checked:{}, weather:null, goals:['','',''], summary:['','',''], timers:{math:0,sci:0,jp:0,soc:0}, timetable:{}, timerRunning:null };
+  return appState[k];
+}
+function saveLocal() {
+  try { localStorage.setItem('studyTodoV2', JSON.stringify({ appState, driveFileId, currentDate: currentDate.toISOString() })); } catch(e) {}
+}
+function loadLocal() {
+  try {
+    const s = localStorage.getItem('studyTodoV2');
+    if (s) {
+      const d = JSON.parse(s);
+      appState = d.appState || {};
+      driveFileId = d.driveFileId || null;
+      if (d.currentDate) currentDate = new Date(d.currentDate);
+    }
+  } catch(e) {}
+}
+
+// ============================================
+// GOOGLE API
+// ============================================
+function initGapi() {
+  if (!DRIVE_CLIENT_ID) return;
+  gapi.load('client', async () => {
+    await gapi.client.init({
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+    });
+    gapiReady = true;
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: DRIVE_CLIENT_ID,
+      scope: SCOPES,
+      callback: (response) => {
+        if (response.error) { showToast('❌ 認証エラー: ' + response.error); return; }
+        accessToken = response.access_token;
+        gapi.client.setToken({ access_token: accessToken });
+        updateDriveStatus('synced', 'Google Drive: 接続済み');
+        showToast('✅ Google Driveに接続しました');
+      },
+    });
+    updateDriveStatus('synced', 'Google Drive: 準備完了（未接続）');
+  });
+}
+
+async function ensureToken() {
+  return new Promise((resolve, reject) => {
+    if (accessToken) { resolve(); return; }
+    const orig = tokenClient.callback;
+    tokenClient.callback = (resp) => {
+      orig(resp);
+      if (resp.error) reject(resp.error);
+      else resolve();
+    };
+    tokenClient.requestAccessToken({ prompt: '' });
+  });
+}
+
+async function saveToDrive() {
+  if (!DRIVE_CLIENT_ID || !gapiReady) { showToast('⚙️ まずGoogle Drive設定を行ってください'); return; }
+  updateDriveStatus('syncing', '保存中...');
+  try {
+    await ensureToken();
+    const content = JSON.stringify({ appState, driveFileId });
+    const blob = new Blob([content], { type: 'application/json' });
+    const metadata = { name: DRIVE_FILE_NAME, mimeType: 'application/json' };
+
+    if (driveFileId) {
+      // Update existing file
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', blob);
+      const res = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${driveFileId}?uploadType=multipart`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: form,
+      });
+      if (!res.ok) throw new Error(await res.text());
+    } else {
+      // Create new file
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', blob);
+      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: form,
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      driveFileId = json.id;
+    }
+    saveLocal();
+    updateDriveStatus('synced', 'Google Drive: 保存済み ✓');
+    showToast('💾 Google Driveに保存しました');
+  } catch(e) {
+    console.error(e);
+    updateDriveStatus('error', 'Google Drive: 保存失敗');
+    showToast('❌ 保存に失敗しました。再認証してください。');
+    accessToken = null;
+  }
+}
+
+async function loadFromDrive() {
+  if (!DRIVE_CLIENT_ID || !gapiReady) { showToast('⚙️ まずGoogle Drive設定を行ってください'); return; }
+  updateDriveStatus('syncing', '読み込み中...');
+  try {
+    await ensureToken();
+
+    // Find file
+    let fileId = driveFileId;
+    if (!fileId) {
+      const res = await fetch(
+        `https://www.googleapis.com/drive/v3/files?q=name='${DRIVE_FILE_NAME}'+and+trashed=false&fields=files(id,name)`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      const json = await res.json();
+      if (json.files && json.files.length > 0) fileId = json.files[0].id;
+    }
+    if (!fileId) { showToast('📂 Drive上にデータが見つかりません'); updateDriveStatus('synced','Google Drive: 接続済み'); return; }
+
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    const data = await res.json();
+    appState = data.appState || {};
+    driveFileId = fileId;
+    saveLocal();
+    updateDriveStatus('synced', 'Google Drive: 読込済み ✓');
+    showToast('📥 Google Driveから読み込みました');
+    render();
+  } catch(e) {
+    console.error(e);
+    updateDriveStatus('error', 'Google Drive: 読込失敗');
+    showToast('❌ 読込に失敗しました。');
+    accessToken = null;
+  }
+}
+
+function updateDriveStatus(state, text) {
+  const dot = document.getElementById('driveDot');
+  const txt = document.getElementById('driveStatusText');
+  dot.className = 'drive-dot ' + state;
+  txt.textContent = text;
+}
+
+// ============================================
+// SETUP
+// ============================================
+function saveClientId() {
+  const val = document.getElementById('clientIdInput').value.trim();
+  if (!val || !val.includes('.apps.googleusercontent.com')) {
+    showToast('❌ 正しいクライアントIDを入力してください');
+    return;
+  }
+  DRIVE_CLIENT_ID = val;
+  localStorage.setItem('driveClientId', val);
+  document.getElementById('setupScreen').classList.remove('active');
+  document.getElementById('notebook').classList.add('active');
+  initGapi();
+  render();
+  showToast('✅ 設定を保存しました');
+}
+
+function skipSetup() {
+  document.getElementById('setupScreen').classList.remove('active');
+  document.getElementById('notebook').classList.add('active');
+  render();
+}
+
+function showSetup() {
+  document.getElementById('setupScreen').classList.add('active');
+  document.getElementById('notebook').classList.remove('active');
+  if (DRIVE_CLIENT_ID) document.getElementById('clientIdInput').value = DRIVE_CLIENT_ID;
+}
+
+// ============================================
+// RENDER
+// ============================================
+function render() {
+  const dayName = DAY_NAMES[currentDate.getDay()];
+  const tasks = ROUTINES[dayName] || [];
+  const st = getDayState(currentDate);
+
+  const m = currentDate.getMonth()+1;
+  const d2 = currentDate.getDate();
+  document.getElementById('dateDisplay').textContent =
+    `${currentDate.getFullYear()}/${String(m).padStart(2,'0')}/${String(d2).padStart(2,'0')}`;
+  document.getElementById('dayBadge').textContent = dayName + '曜';
+
+  document.querySelectorAll('.weather-icon').forEach(el => {
+    el.classList.toggle('selected', el.textContent.trim() === st.weather);
+  });
+
+  ['goal1','goal2','goal3'].forEach((id,i) => { document.getElementById(id).value = st.goals[i]||''; });
+  ['summary1','summary2','summary3'].forEach((id,i) => { document.getElementById(id).value = st.summary[i]||''; });
+
+  // Todos
+  const todoList = document.getElementById('todoList');
+  todoList.innerHTML = '';
+  const checkable = tasks.filter(t => !t.type);
+  const total = checkable.length;
+  const done = checkable.filter(t => st.checked[t.id]).length;
+
+  tasks.forEach(task => {
+    if (task.type === 'section') {
+      const el = document.createElement('div');
+      el.className = 'todo-section-header';
+      el.textContent = task.text;
+      todoList.appendChild(el);
+      return;
+    }
+    if (task.type === 'section2') {
+      const el = document.createElement('div');
+      el.className = 'section-divider';
+      el.innerHTML = `<div class="section-divider-line"></div><div class="section-divider-text">${task.text}</div><div class="section-divider-line"></div>`;
+      todoList.appendChild(el);
+      return;
+    }
+    const el = document.createElement('div');
+    el.className = 'todo-item';
+    if (task.indent) el.style.paddingLeft = '12px';
+
+    const cb = document.createElement('div');
+    cb.className = 'checkbox' + (st.checked[task.id] ? ' checked' : '');
+    cb.onclick = () => { st.checked[task.id] = !st.checked[task.id]; saveLocal(); render(); };
+
+    const txt = document.createElement('div');
+    txt.className = 'todo-text' + (st.checked[task.id] ? ' done' : '');
+    let html = '';
+    if (task.tag) html += `<span class="tag ${TAG_CLASSES[task.tag]}">${TAG_LABELS[task.tag]}</span> `;
+    html += task.text;
+    if (task.note) html += `<br><span class="optional-note">※ ${task.note}</span>`;
+    txt.innerHTML = html;
+    txt.onclick = () => { st.checked[task.id] = !st.checked[task.id]; saveLocal(); render(); };
+
+    el.appendChild(cb);
+    el.appendChild(txt);
+    todoList.appendChild(el);
+  });
+
+  const pct = total > 0 ? Math.round((done/total)*100) : 0;
+  document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `${done} / ${total} 完了 (${pct}%)`;
+
+  // Timetable
+  const ttRows = document.getElementById('timetableRows');
+  ttRows.innerHTML = '';
+  for (let h = 1; h <= 24; h++) {
+    const row = document.createElement('div');
+    row.className = 'time-row';
+    const num = document.createElement('div');
+    num.className = 'time-num';
+    num.textContent = h;
+    const inp = document.createElement('input');
+    inp.className = 'time-input';
+    inp.value = st.timetable[h] || '';
+    inp.oninput = () => { st.timetable[h] = inp.value; saveLocal(); };
+    row.appendChild(num);
+    row.appendChild(inp);
+    ttRows.appendChild(row);
+  }
+
+  renderTimers();
+}
+
+function renderTimers() {
+  const st = getDayState(currentDate);
+  const grid = document.getElementById('timerGrid');
+  grid.innerHTML = '';
+  SUBJECTS.forEach(subj => {
+    const div = document.createElement('div');
+    div.className = 'subject-timer';
+    const label = document.createElement('div');
+    label.className = 'subject-timer-label';
+    label.innerHTML = `<span>${subj.emoji}</span><span style="color:${subj.color};font-weight:700">${subj.label}</span>`;
+    const controls = document.createElement('div');
+    controls.className = 'timer-controls';
+    const display = document.createElement('div');
+    display.className = 'timer-display';
+    display.id = `timer-${subj.key}`;
+    display.textContent = formatTime(st.timers[subj.key] || 0);
+    const btn = document.createElement('button');
+    btn.className = 'timer-btn' + (st.timerRunning === subj.key ? ' running' : '');
+    btn.textContent = st.timerRunning === subj.key ? '⏸' : '▶';
+    btn.onclick = () => toggleTimer(subj.key);
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'timer-btn';
+    resetBtn.textContent = '↺';
+    resetBtn.onclick = () => { stopAllTimers(); st.timers[subj.key] = 0; saveLocal(); renderTimers(); };
+    controls.appendChild(btn);
+    controls.appendChild(display);
+    controls.appendChild(resetBtn);
+    div.appendChild(label);
+    div.appendChild(controls);
+    grid.appendChild(div);
+  });
+}
+
+function formatTime(secs) {
+  const h = Math.floor(secs/3600);
+  const m = Math.floor((secs%3600)/60);
+  const s = secs%60;
+  if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+let timerInterval = null;
+function stopAllTimers() {
+  const st = getDayState(currentDate);
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  st.timerRunning = null;
+}
+function toggleTimer(key) {
+  const st = getDayState(currentDate);
+  if (st.timerRunning === key) { stopAllTimers(); saveLocal(); renderTimers(); return; }
+  stopAllTimers();
+  st.timerRunning = key;
+  timerInterval = setInterval(() => {
+    const s2 = getDayState(currentDate);
+    s2.timers[key] = (s2.timers[key]||0) + 1;
+    const el = document.getElementById(`timer-${key}`);
+    if (el) el.textContent = formatTime(s2.timers[key]);
+    saveLocal();
+  }, 1000);
+  saveLocal();
+  renderTimers();
+}
+
+function changeDay(delta) {
+  stopAllTimers();
+  currentDate = new Date(currentDate.getTime() + delta*86400000);
+  saveLocal();
+  render();
+}
+function selectWeather(el, emoji) {
+  const st = getDayState(currentDate);
+  st.weather = st.weather === emoji ? null : emoji;
+  saveLocal();
+  render();
+}
+function bindInputs() {
+  ['goal1','goal2','goal3'].forEach((id,i) => {
+    document.getElementById(id).addEventListener('input', e => { getDayState(currentDate).goals[i] = e.target.value; saveLocal(); });
+  });
+  ['summary1','summary2','summary3'].forEach((id,i) => {
+    document.getElementById(id).addEventListener('input', e => { getDayState(currentDate).summary[i] = e.target.value; saveLocal(); });
+  });
+}
+
+// Toast
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ============================================
+// INIT
+// ============================================
+(function() {
+  // Rings
+  const rings = document.getElementById('rings');
+  for (let i = 0; i < 18; i++) {
+    const r = document.createElement('div');
+    r.className = 'ring';
+    rings.appendChild(r);
+  }
+
+  // Show origin hint
+  document.getElementById('originText').textContent = window.location.origin || 'file://';
+
+  // Load saved client ID
+  const saved = localStorage.getItem('driveClientId');
+  if (saved) {
+    DRIVE_CLIENT_ID = saved;
+    document.getElementById('clientIdInput').value = saved;
+    // Skip setup screen if already configured
+    document.getElementById('setupScreen').classList.remove('active');
+    document.getElementById('notebook').classList.add('active');
+    initGapi();
+  }
+
+  loadLocal();
+  render();
+  bindInputs();
+})();
+</script>
+</body>
+</html>
