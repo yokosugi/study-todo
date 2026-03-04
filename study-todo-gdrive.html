@@ -87,7 +87,7 @@
   .section-box { border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:14px; background:white; }
   .section-box-label { font-family:'Space Mono',monospace; font-size:9px; font-weight:700; letter-spacing:2px; color:var(--ink-light); margin-bottom:6px; }
   .dotted-lines { display:flex; flex-direction:column; gap:6px; }
-  .dotted-line { border:none; border-bottom:1px dotted var(--line); background:transparent; width:100%; font-family:'Noto Sans JP',sans-serif; font-size:13px; color:var(--ink); padding:2px 0; outline:none; }
+  .dotted-line { border:none; border-bottom:1px dotted var(--line); background:transparent; width:100%; font-family:'Noto Sans JP',sans-serif; font-size:13px; color:var(--ink); padding:2px 0; outline:none; resize:none; overflow:hidden; line-height:1.6; }
   .dotted-line::placeholder { color:var(--line); }
 
   .progress-bar-container { height:4px; background:var(--line); border-radius:2px; margin:8px 0 4px; overflow:hidden; }
@@ -258,15 +258,24 @@
 
     <!-- Header -->
     <div class="header">
-      <div class="header-left">
+      <div class="header-left" style="position:relative">
         <div class="date-row">
           <span class="date-label">DATE</span>
           <span class="date-value" id="dateDisplay"></span>
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
           <span id="todayLabel" style="display:none;font-family:'Space Mono',monospace;font-size:9px;font-weight:700;background:var(--accent-red);color:white;padding:2px 7px;border-radius:10px;letter-spacing:1px">TODAY</span>
-          <div class="countdown-badge" id="countdownBadge"></div>
+          <div class="countdown-badge" id="countdownBadge" onclick="openTargetDateEditor()" title="クリックして目標日を変更" style="cursor:pointer"></div>
           <span class="hanamaru" id="hanamaruBadge" style="display:none">🌸</span>
+        </div>
+        <!-- Target date editor popup -->
+        <div id="targetDatePopup" style="display:none;position:absolute;z-index:50;background:white;border:1.5px solid var(--line);border-radius:8px;padding:10px 12px;box-shadow:0 4px 16px rgba(0,0,0,0.15);margin-top:4px">
+          <div style="font-family:'Space Mono',monospace;font-size:9px;font-weight:700;color:var(--ink-light);margin-bottom:6px;letter-spacing:1px">目標日を設定</div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input type="date" id="targetDateInput" style="border:1.5px solid var(--line);border-radius:4px;padding:4px 6px;font-size:12px;font-family:'Noto Sans JP',sans-serif;outline:none;color:var(--ink)">
+            <button onclick="saveTargetDate()" style="background:var(--ink);color:white;border:none;border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer">保存</button>
+            <button onclick="closeTargetDateEditor()" style="background:transparent;border:1px solid var(--line);border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer;color:var(--ink-light)">✕</button>
+          </div>
         </div>
       </div>
       <div class="day-nav">
@@ -312,9 +321,9 @@
       <div class="section-box">
         <div class="section-box-label">METE / 目標</div>
         <div class="dotted-lines">
-          <input class="dotted-line" placeholder="今日の目標を書こう..." id="goal1">
-          <input class="dotted-line" id="goal2">
-          <input class="dotted-line" id="goal3">
+          <textarea class="dotted-line" placeholder="今日の目標を書こう..." id="goal1" rows="1" oninput="autoResize(this)"></textarea>
+          <textarea class="dotted-line" id="goal2" rows="1" oninput="autoResize(this)"></textarea>
+          <textarea class="dotted-line" id="goal3" rows="1" oninput="autoResize(this)"></textarea>
         </div>
       </div>
 
@@ -340,9 +349,9 @@
       <div class="summary-section">
         <div class="section-box-label">SUMMARY / まとめ</div>
         <div class="dotted-lines">
-          <input class="dotted-line" placeholder="今日の振り返り..." id="summary1">
-          <input class="dotted-line" id="summary2">
-          <input class="dotted-line" id="summary3">
+          <textarea class="dotted-line" placeholder="今日の振り返り..." id="summary1" rows="1" oninput="autoResize(this)"></textarea>
+          <textarea class="dotted-line" id="summary2" rows="1" oninput="autoResize(this)"></textarea>
+          <textarea class="dotted-line" id="summary3" rows="1" oninput="autoResize(this)"></textarea>
         </div>
       </div>
     </div><!-- /page-todo -->
@@ -513,7 +522,7 @@ const SUBJECTS=[
   {key:'jp',  label:'国語',emoji:'📖',color:'#8e44ad'},
   {key:'soc', label:'社会',emoji:'🌍',color:'#2980b9'},
 ];
-const COUNTDOWN_TARGET = new Date(2027, 1, 2); // 2027-02-02
+let COUNTDOWN_TARGET = new Date(2027, 1, 2); // デフォルト2027-02-02、ユーザーが変更可能
 
 // ============================================
 // STATE
@@ -595,9 +604,40 @@ function updateCountdown(){
   today.setHours(0,0,0,0);
   const diff = Math.ceil((COUNTDOWN_TARGET - today)/(1000*60*60*24));
   const el = document.getElementById('countdownBadge');
-  if(diff>0) el.textContent=`2027/02/02まで あと${diff}日`;
+  const y=COUNTDOWN_TARGET.getFullYear();
+  const m=String(COUNTDOWN_TARGET.getMonth()+1).padStart(2,'0');
+  const d=String(COUNTDOWN_TARGET.getDate()).padStart(2,'0');
+  if(diff>0) el.textContent=`${y}/${m}/${d}まで あと${diff}日 ✎`;
   else if(diff===0) el.textContent='🎉 今日が目標日！';
   else el.textContent=`目標日から${-diff}日経過`;
+}
+function openTargetDateEditor(){
+  const popup=document.getElementById('targetDatePopup');
+  const y=COUNTDOWN_TARGET.getFullYear();
+  const m=String(COUNTDOWN_TARGET.getMonth()+1).padStart(2,'0');
+  const d=String(COUNTDOWN_TARGET.getDate()).padStart(2,'0');
+  document.getElementById('targetDateInput').value=`${y}-${m}-${d}`;
+  popup.style.display='block';
+}
+function closeTargetDateEditor(){
+  document.getElementById('targetDatePopup').style.display='none';
+}
+function saveTargetDate(){
+  const val=document.getElementById('targetDateInput').value;
+  if(!val) return;
+  const parts=val.split('-');
+  COUNTDOWN_TARGET=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  try{localStorage.setItem('targetDate',val);}catch(e){}
+  closeTargetDateEditor();
+  updateCountdown();
+  saveLocal();
+  showToast('✅ 目標日を設定しました');
+}
+function loadTargetDate(){
+  try{
+    const saved=localStorage.getItem('targetDate');
+    if(saved){const p=saved.split('-');COUNTDOWN_TARGET=new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));}
+  }catch(e){}
 }
 
 // ============================================
@@ -764,8 +804,8 @@ function render(){
   const todayLabelEl=document.getElementById('todayLabel');
   if(todayLabelEl) todayLabelEl.style.display = isToday2 ? 'inline-block' : 'none';
   document.querySelectorAll('.weather-icon').forEach(el=>{el.classList.toggle('selected',el.textContent.trim()===st.weather);});
-  ['goal1','goal2','goal3'].forEach((id,i)=>{document.getElementById(id).value=st.goals[i]||'';});
-  ['summary1','summary2','summary3'].forEach((id,i)=>{document.getElementById(id).value=st.summary[i]||'';});
+  ['goal1','goal2','goal3'].forEach((id,i)=>{const el=document.getElementById(id);el.value=st.goals[i]||'';autoResize(el);});
+  ['summary1','summary2','summary3'].forEach((id,i)=>{const el=document.getElementById(id);el.value=st.summary[i]||'';autoResize(el);});
 
   // Todos
   const todoList=document.getElementById('todoList');
@@ -1006,15 +1046,35 @@ function renderChart(mode){
     }));
   }
 
+  // 折れ線グラフ用にデータセットにline設定を追加
+  const lineDatasets = datasets.map(ds => ({
+    ...ds,
+    borderColor: ds.backgroundColor.replace('cc','ff'),
+    backgroundColor: ds.backgroundColor.replace('cc','33'),
+    borderWidth: 2,
+    pointRadius: 4,
+    pointHoverRadius: 6,
+    tension: 0.3,
+    fill: false,
+  }));
+
   studyChart=new Chart(ctx,{
-    type:'bar',
-    data:{labels,datasets},
+    type:'line',
+    data:{labels,datasets:lineDatasets},
     options:{
       responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{labels:{font:{size:10},boxWidth:12}}},
+      plugins:{
+        legend:{labels:{font:{size:10},boxWidth:12}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y}h`}}
+      },
       scales:{
-        x:{stacked:true,ticks:{font:{size:8}}},
-        y:{stacked:true,ticks:{font:{size:9},callback:v=>v+'h'},title:{display:true,text:'時間(h)',font:{size:9}}}
+        x:{ticks:{font:{size:8}},grid:{color:'rgba(0,0,0,0.05)'}},
+        y:{
+          beginAtZero:true,
+          ticks:{font:{size:9},callback:v=>v+'h'},
+          title:{display:true,text:'時間(h)',font:{size:9}},
+          grid:{color:'rgba(0,0,0,0.07)'}
+        }
       }
     }
   });
@@ -1263,12 +1323,16 @@ function selectWeather(el,emoji){
   st.weather=st.weather===emoji?null:emoji;
   saveLocal();render();
 }
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=el.scrollHeight+'px';
+}
 function bindInputs(){
   ['goal1','goal2','goal3'].forEach((id,i)=>{
-    document.getElementById(id).addEventListener('input',e=>{getDayState(currentDate).goals[i]=e.target.value;saveLocal();});
+    document.getElementById(id).addEventListener('input',e=>{getDayState(currentDate).goals[i]=e.target.value;saveLocal();autoResize(e.target);});
   });
   ['summary1','summary2','summary3'].forEach((id,i)=>{
-    document.getElementById(id).addEventListener('input',e=>{getDayState(currentDate).summary[i]=e.target.value;saveLocal();});
+    document.getElementById(id).addEventListener('input',e=>{getDayState(currentDate).summary[i]=e.target.value;saveLocal();autoResize(e.target);});
   });
 }
 function showToast(msg){
@@ -1288,6 +1352,7 @@ function showToast(msg){
   if(lrings){for(let i=0;i<14;i++){const r=document.createElement('div');r.className='ring';lrings.appendChild(r);}}
 
   loadCustomRoutines();
+  loadTargetDate();
   loadLocal();
   currentDate = new Date(); // 常に今日から始める
   currentDate.setHours(0,0,0,0);
