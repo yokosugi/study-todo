@@ -94,7 +94,7 @@
   .progress-bar { height:100%; background:var(--ink); border-radius:2px; transition:width 0.4s ease; }
   .progress-label { font-family:'Space Mono',monospace; font-size:9px; color:var(--ink-light); text-align:right; margin-bottom:12px; }
 
-  .main-area { display:grid; grid-template-columns:1fr 110px; gap:10px; margin-bottom:14px; }
+  .main-area-full { display:block; margin-bottom:14px; }
   .todo-list { display:flex; flex-direction:column; gap:2px; }
   .todo-section-header { font-family:'Space Mono',monospace; font-size:8px; font-weight:700; letter-spacing:2px; color:var(--ink-light); padding:8px 0 4px; border-top:1px solid var(--line); margin-top:4px; text-transform:uppercase; }
   .todo-section-header:first-child { border-top:none; padding-top:2px; }
@@ -129,14 +129,7 @@
   .custom-task-del { font-size:10px; color:var(--line); cursor:pointer; margin-left:auto; padding:0 2px; flex-shrink:0; }
   .custom-task-del:hover { color:var(--accent-red); }
 
-  /* Timetable */
-  .timetable { border:1px solid var(--line); border-radius:6px; overflow:hidden; background:white; align-self:flex-start; }
-  .timetable-header { background:var(--ink); color:var(--paper); font-family:'Space Mono',monospace; font-size:8px; font-weight:700; letter-spacing:2px; text-align:center; padding:5px 2px; }
-  .time-row { display:grid; grid-template-columns:22px 1fr; border-bottom:1px solid var(--line); min-height:22px; cursor:pointer; }
-  .time-row:last-child { border-bottom:none; }
-  .time-row.highlighted { background:#fff8e1; }
-  .time-num { font-family:'Space Mono',monospace; font-size:8px; color:var(--ink-light); padding:3px 2px 3px 4px; border-right:1px solid var(--line); display:flex; align-items:center; justify-content:flex-end; background:#f8f6f0; user-select:none; }
-  .time-input { border:none; background:transparent; font-size:9px; font-family:'Noto Sans JP',sans-serif; color:var(--ink); padding:2px 4px; width:100%; outline:none; }
+
 
   /* Study time - manual input */
   .timer-section { border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:14px; background:white; }
@@ -297,12 +290,8 @@
       <div class="progress-label" id="progressLabel">0 / 0 完了</div>
 
       <!-- Main area -->
-      <div class="main-area">
+      <div class="main-area-full">
         <div class="todo-list" id="todoList"></div>
-        <div class="timetable">
-          <div class="timetable-header">TIMETABLE</div>
-          <div id="timetableRows"></div>
-        </div>
       </div>
 
       <!-- Study time manual input -->
@@ -752,7 +741,6 @@ function render(){
     hana.style.display = allDone ? 'inline-block' : 'none';
   }
 
-  renderTimetable();
   renderTimers();
 }
 
@@ -772,24 +760,7 @@ function removeCustomTask(id){
   saveLocal();render();
 }
 
-// ============================================
-// TIMETABLE with drag
-// ============================================
-function renderTimetable(){
-  const st=getDayState(currentDate);
-  const ttRows=document.getElementById('timetableRows');
-  ttRows.innerHTML='';
-  for(let h=1;h<=24;h++){
-    const row=document.createElement('div');row.className='time-row';
-    const val=st.timetable[h]||'';
-    if(val) row.classList.add('highlighted');
-    const num=document.createElement('div');num.className='time-num';num.textContent=h;
-    const inp=document.createElement('input');inp.className='time-input';inp.value=val;inp.placeholder='';
-    inp.oninput=()=>{st.timetable[h]=inp.value;if(inp.value)row.classList.add('highlighted');else row.classList.remove('highlighted');saveLocal();};
-    row.appendChild(num);row.appendChild(inp);
-    ttRows.appendChild(row);
-  }
-}
+
 
 // ============================================
 // TIMERS - manual minutes input
@@ -895,7 +866,7 @@ function renderChart(mode){
         let total=0;
         Object.entries(appState).forEach(([dk,st])=>{
           const d=new Date(dk);
-          if(d>=w.start&&d<=w.end) total+=Math.round((st.timers&&st.timers[subj.key]||0)/60);
+          if(d>=w.start&&d<=w.end) total+=(st.timers&&st.timers[subj.key]||0);
         });
         return Math.round(total/60*10)/10; // hours
       }),
@@ -917,9 +888,9 @@ function renderChart(mode){
         Object.entries(appState).forEach(([dk,st])=>{
           const d=new Date(dk);
           if(d.getFullYear()===m.year&&d.getMonth()===m.month)
-            total+=Math.round((st.timers&&st.timers[subj.key]||0)/60);
+            total+=(st.timers&&st.timers[subj.key]||0);
         });
-        return Math.round(total/60*10)/10;
+        return Math.round(total/60*10)/10; // minutes -> hours
       }),
       backgroundColor:subj.color+'cc',
     }));
