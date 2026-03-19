@@ -703,19 +703,38 @@ async function loadFromDrive(){
   updateDriveStatus('syncing','読み込み中...');
   try{
     await ensureToken();
+    showToast('🔑 トークン取得OK');
     let fileId=driveFileId;
     if(!fileId){
-      const res=await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${DRIVE_FILE_NAME}'&fields=files(id,name)`,{headers:{Authorization:`Bearer ${accessToken}`}});
+      const url=`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${DRIVE_FILE_NAME}'&fields=files(id,name)`;
+      showToast('🔍 ファイル検索中...');
+      const res=await fetch(url,{headers:{Authorization:`Bearer ${accessToken}`}});
       const json=await res.json();
+      showToast(`📂 検索結果: ${json.files?json.files.length:0}件 / status:${res.status}`);
+      console.log('Drive search result:', json);
       if(json.files&&json.files.length>0)fileId=json.files[0].id;
+    } else {
+      showToast(`📎 既知fileId: ${fileId.slice(0,8)}...`);
     }
-    if(!fileId){showToast('📂 Drive上にデータが見つかりません');updateDriveStatus('synced','Google Drive: 接続済み');return;}
+    if(!fileId){
+      showToast('📂 ファイルが見つかりません（新規ユーザーか保存前）');
+      updateDriveStatus('synced','Google Drive: ファイルなし');return;
+    }
+    showToast(`📥 ファイル取得中 ID:${fileId.slice(0,8)}...`);
     const res=await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,{headers:{Authorization:`Bearer ${accessToken}`}});
+    console.log('File fetch status:', res.status);
+    if(!res.ok){showToast(`❌ ファイル取得失敗 status:${res.status}`);return;}
     const data=await res.json();
+    console.log('Loaded data keys:', Object.keys(data));
     appState=data.appState||{};driveFileId=fileId;
     if(data.customRoutines){customRoutines=data.customRoutines;saveCustomRoutines();}
     saveLocal();updateDriveStatus('synced','Google Drive: 読込済み ✓');showToast('📥 Google Driveから読み込みました');render();
-  }catch(e){console.error(e);updateDriveStatus('error','Google Drive: 読込失敗');showToast('❌ 読込に失敗しました。');accessToken=null;}
+  }catch(e){
+    console.error('loadFromDrive error:', e);
+    updateDriveStatus('error','Google Drive: 読込失敗');
+    showToast(`❌ エラー: ${e.message||e}`);
+    accessToken=null;
+  }
 }
 
 // 起動時の自動読み込み（トースト不要・静かに同期）
