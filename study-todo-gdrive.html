@@ -296,6 +296,7 @@
         <button class="drive-btn save-btn" onclick="saveToDrive()">💾 保存</button>
         <button class="drive-btn" onclick="loadFromDrive()">📥 読込</button>
         <button class="drive-btn" onclick="openRoutineEditor()" title="ルーティーン編集">⚙️</button>
+        <button class="drive-btn" onclick="resetAndSaveToDrive()" title="Driveをリセットして再保存" style="color:var(--accent-orange);border-color:var(--accent-orange)">🔄</button>
       </div>
     </div>
 
@@ -570,6 +571,8 @@ function scheduleAutoSave(){
 
 async function saveToDriveQuiet(){
   if(!DRIVE_CLIENT_ID||!gapiReady||!accessToken) return;
+  // データが空なら保存しない（誤上書き防止）
+  if(Object.keys(appState).length===0) return;
   try{
     const content=JSON.stringify({appState,driveFileId,customRoutines});
     const blob=new Blob([content],{type:'application/json'});
@@ -673,6 +676,8 @@ async function ensureToken(){
 }
 async function saveToDrive(){
   if(!DRIVE_CLIENT_ID||!gapiReady){showToast('⚙️ まずGoogle Drive設定を行ってください');return;}
+  // データが空なら保存しない
+  if(Object.keys(appState).length===0){showToast('⚠️ データが空のため保存をスキップしました');return;}
   updateDriveStatus('syncing','保存中...');
   try{
     await ensureToken();
@@ -754,6 +759,8 @@ async function loadFromDriveAuto(){
     try{localStorage.setItem('studyTodoV3',JSON.stringify({appState,driveFileId,currentDate:currentDate.toISOString()}));}catch(e){}
     updateDriveStatus('synced','Google Drive: 同期済み ✓');
     render();
+    // 読み込み直後の自動保存タイマーをキャンセル（読み込んだデータで誤上書きしない）
+    if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
   }catch(e){
     console.warn('Auto-load failed',e);
     updateDriveStatus('synced','Google Drive: 接続済み');
@@ -1222,6 +1229,26 @@ function renderCalendar(){
     num.textContent=i;
     d.appendChild(num);grid.appendChild(d);
   }
+}
+
+// ============================================
+// DRIVE RESET
+// ============================================
+async function resetAndSaveToDrive(){
+  if(!confirm('DriveのファイルIDをリセットして新規保存します。\nスマホとタブレットの同期がずれている場合に使ってください。\n\n続けますか？')) return;
+  // fileIdをクリアして強制的に新規ファイルとして保存
+  driveFileId = null;
+  try{
+    const s = localStorage.getItem('studyTodoV3');
+    if(s){
+      const d = JSON.parse(s);
+      d.driveFileId = null;
+      localStorage.setItem('studyTodoV3', JSON.stringify(d));
+    }
+  }catch(e){}
+  showToast('🔄 新規ファイルとして保存中...');
+  await saveToDrive();
+  showToast('✅ 新しいファイルに保存しました！他のデバイスで「📥 読込」を押してください');
 }
 
 // ============================================
